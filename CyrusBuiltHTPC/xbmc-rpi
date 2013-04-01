@@ -1,0 +1,53 @@
+#!/bin/sh
+# xbmc-rpi
+#
+# Author:
+#	Chris Brunner <cyrusbuilt at gmail dot com>
+#
+# Copyright (c) 2012 CyrusBuilt
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+# This is a Raspberry Pi-specific launcher script for XBMC.
+# When XBMC quits and returns to the console, the frame buffer does not return to normal.
+# This script solves this problem by saving off the current console configuration and then
+# restores it when XBMC dies.  This will also mount and dismount a USB drive for XBMC
+# to use.
+#
+
+# Save current display mode, then turn off console cursor and launch XBMC.
+mode=`fbset|grep "mode "|sed -e "s/.*\"\(.*\)\"/\1/"`
+ps=$PS1
+export PS1=''
+setterm -cursor off
+clear
+xbmc_bin="/usr/lib/xbmc/xbmc.bin"
+if [ ! -f $xbmc_bin ]; then
+	echo
+	echo "FATAL ERROR: XBMC not installed!! Cannot continue."
+	exit 1
+fi
+sudo $xbmc_bin
+
+# Restore console.
+export PS1=$ps
+setterm -cursor on
+xres=`echo $mode|sed -e "s/x.*//"`
+yres=`echo $mode|sed -e "s/.*x\([0-9]*\)-\?.*/\1/"`
+fbset -fb /dev/fb0 -xres $xres -yres $yres
+sudo chvt 2
+sudo chvt 1
+
+clear
+exit 0
