@@ -1,0 +1,8 @@
+<VisualMicro>
+  <Program Name="Raspi_ATX_PMU" Ext=".ino" Location="D:\dev\Arduino\Raspi_ATX_PMU">
+    <Compile IsCompiled="0" CompilerErrors="0" ConfigurationName="Debug" StopOnError="True" OptimiseLibs="True" OptimiseCore="True" BuildPath="C:\Users\cyrusthavirus.CYRUSBUILT\AppData\Local\VMicro\Arduino\Builds\Raspi_ATX_PMU\micro" />
+    <Platform Name="Arduino">
+      <Board CoreFolder="C:\Program Files\arduino-1.0.3\hardware\arduino\cores\arduino" Name="micro" Description="Arduino Micro" VariantFullPath="C:\Program Files\arduino-1.0.3\hardware\arduino\variants\micro" bootloader.extended_fuses="0xcb" bootloader.file="Caterina-Micro.hex" bootloader.high_fuses="0xd8" bootloader.lock_bits="0x2F" bootloader.low_fuses="0xff" bootloader.path="caterina" bootloader.unlock_bits="0x3F" build.core="arduino" build.f_cpu="16000000L" build.mcu="atmega32u4" build.pid="0x8037" build.variant="micro" build.variant.vmresolved="C:\Program Files\arduino-1.0.3\hardware\arduino\variants\micro" build.vid="0x2341" name="Arduino Micro" upload.disable_flushing="true" upload.maximum_size="28672" upload.protocol="avr109" upload.speed="57600" />
+    </Platform>
+  </Program>
+</VisualMicro>
