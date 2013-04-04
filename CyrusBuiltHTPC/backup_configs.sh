@@ -33,11 +33,11 @@ CURRENT_DIR=`pwd`
 BACKUP_DIR=$CURRENT_DIR/configs_backup
 if [ ! -d $BACKUP_DIR ]; then
 	mkdir $BACKUP_DIR
-fi
-
-# dump the contents of the current directory.
-if [ "$(ls -A $BACKUP_DIR)" ]; then
-	rm -rf $BACKUP_DIR/*
+else
+	# dump the contents of the current directory.
+	if [ "$(ls -A $BACKUP_DIR)" ]; then
+		rm -rf $BACKUP_DIR/*
+	fi
 fi
 
 BACKUP_DIR=$BACKUP_DIR/

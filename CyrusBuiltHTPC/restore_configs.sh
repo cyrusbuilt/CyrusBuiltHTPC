@@ -36,6 +36,7 @@ check_remove_backup() {
 	done
 }
 
+# Make sure backup directory still exists.
 echo
 echo
 echo "Restoring original system onfiguration..."
@@ -45,17 +46,29 @@ if [ ! -d $BACKUP_DIR ]; then
 	exit 1
 fi
 
-sudo cp -v $BACKUP_DIR/config.txt /boot/
-sudo cp -v $BACKUP_DIR/sudoers /etc/
-sudo cp -v $BACKUP_DIR/rc.local /etc/
-sudo cp -v $BACKUP_DIR/modules /etc/
-sudo cp -v $BACKUP_DIR/fstab /etc/
+# Make sure each file in the backup set exists. If so, restore the file to the
+# original location. Otherwise, throw a warning.
+target=""
+files="config.txt" "sudoers" "rc.local" "modules" "fstab"
+for f in $files; do
+	if [ -f "$BACKUP_DIR/$f" ]; then
+		if [ "$f" == "config.txt" ]; then
+			target=/boot/
+		else
+			target=/etc/
+		fi
+		sudo cp -v $BACKUP_DIR/$f $target
+	else
+		echo "WARNING: File in backup set missing: $BACKUP_DIR/$f"
+	fi
+done
 echo "Done!"
 
+# Find out fi the user wants to remove the old backup set.
 if check_remove_backup; then
 	echo
 	echo "Cleaning up..."
-	rm -f $BACKUP_DIR
+	rm -rf $BACKUP_DIR
 fi
 
 echo "Restoration complete."
