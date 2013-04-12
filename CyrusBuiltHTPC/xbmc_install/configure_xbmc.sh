@@ -33,7 +33,8 @@ cd xbmc-rbp/
 --disable-alsa --enable-avahi --disable-libbluray --disable-dvdcss \
 --disable-debug --disable-joystick --enable-mid --disable-nfs --disable-profiling \
 --disable-projectm --enable-rsxs --enable-rtmp --disable-vaapi \
---disable-vdadecoder --disable-external-ffmpeg  --disable-optical-drive
+--disable-vdadecoder --disable-external-ffmpeg  --disable-optical-drive \
+--enable-libcec
 if [ $? -ne 0 ]; then
 	cd /home/pi/xbmc_install
     exit 1

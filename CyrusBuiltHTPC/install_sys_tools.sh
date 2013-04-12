@@ -29,21 +29,13 @@ sudo cp systemshutdown /usr/bin/
 sudo cp systemupdate /usr/bin/
 cp backup_configs.sh ~/
 cp restore_configs.sh ~/
-
-WD=`pwd`
-if [ "$WD" != "/home/pi" ]; then
-    cp -R "$WD/xbmc_install" /home/pi/
-fi
-
 sudo chmod +rx /usr/bin/systemreboot
 sudo chmod +rx /usr/bin/systemshutdown
 sudo chmod +rx /usr/bin/systemupdate
 chmod +rx ~/backup_configs.sh
 chmod +rx ~/restore_configs.sh
-cd /home/pi/xbmc_install
-for f in *.sh; do
-    chmod +rx $f
-done
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
+chmod +rx *.sh
 
 cd ~/
 echo "Installation successful!"

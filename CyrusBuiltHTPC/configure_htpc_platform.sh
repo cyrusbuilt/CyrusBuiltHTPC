@@ -28,7 +28,7 @@ check_install_autofs() {
 	echo
 	local canproceed
 	while true; do
-		read -p "Would you like me to install and configure AutoFS for you? (Y/n): " $canproceed
+		read -p "Would you like me to install and configure AutoFS for you? (Y/n): " canproceed
 		case $canproceed in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;
@@ -52,7 +52,7 @@ check_backup_configs() {
 	echo
 	echo "It is recommended you back up your current system configs prior to proceeding."
 	while true; do
-		read -p "Backup system configs now? (Y/n): " $canbackup
+		read -p "Backup system configs now? (Y/n): " canbackup
 		case $canbackup in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;
@@ -124,7 +124,7 @@ echo "Configuration finished."
 check_can_reboot() {
 	local canreboot
 	while true; do
-		read -p "Reboot now (Y/n)?: " $canreboot
+		read -p "Reboot now (Y/n)?: " canreboot
 		case $canreboot in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;

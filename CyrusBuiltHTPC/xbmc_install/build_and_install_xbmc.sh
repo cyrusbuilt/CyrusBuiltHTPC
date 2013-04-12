@@ -52,6 +52,11 @@ main() {
         return $ERR_FILE_MISSING
     fi
 
+	if [ ! -f "build_and_install_libcec.sh" ]; then
+		echo "ERROR: Missing component: build_and_install_libcec.sh"
+		return $ERR_FILE_MISSING
+	fi
+
     if [ ! -f "copy_includes.sh" ]; then
         echo "ERROR: Missing component: copy_includes.sh"
         return $ERR_FILE_MISSING
@@ -93,6 +98,11 @@ main() {
         return $ERR_GET_PREREQS_FAIL
     fi
 
+	./build_and_install_libcec.sh
+	if [ $? -ne 0 ]; then
+		return $ERR_GET_PREREQS_FAIL
+	fi
+
     ./copy_includes.sh
     ./create_symlinks.sh
     ./get_xbmc.sh
@@ -132,7 +142,7 @@ echo "WARNING!! This process will take SEVERAL hours (~ 13) to complete!"
 check_proceed() {
 	local result=''
 	while true; do
-    	read -p "Are you sure you want to continue? (Y/n): " $result
+    	read -p "Are you sure you want to continue? (Y/n): " result
 		case $result in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;
@@ -145,7 +155,7 @@ check_proceed() {
 check_can_reboot() {
 	local canreboot=''
 	while true; do
-		read -p "Reboot now (Y/n)?: " $canreboot
+		read -p "Reboot now (Y/n)?: " canreboot
 		case $canreboot in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;

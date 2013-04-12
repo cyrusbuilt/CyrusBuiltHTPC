@@ -66,4 +66,5 @@ x11proto-record-dev x11proto-render-dev x11proto-scrnsaver-dev \
 x11proto-xext-dev x11proto-xf86vidmode-dev x11proto-xinerama-dev xtrans-dev \
 zlib1g-dev:armhf
 sudo apt-get clean
+sudo apt-get autoremove
 exit 0
