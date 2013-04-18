@@ -24,15 +24,30 @@
 
 echo
 echo "Compiling XBMC build tools ..."
-cd xbmc-rbp/
+cd xbmc-rbp/xbmc-12.1
+export TARGET_SUBARCH="armv6zk"
+export TARGET_CPU="arm1176jzf-s"
+export TARGET_FLOAT="hard"
+export TARGET_FPU="vfp"
+export TARGET_FPU_FLAGS="-mfloat-abi=$TARGET_FLOAT -mfpu=$TARGET_FPU"
+export TARGET_EXTRA_FLAGS="-Wno-psabi -Wa,-mno-warn-deprecated"
+export TARGET_COPT="-Wall -pipe -fomit-frame-pointer -O3 -fexcess-precision=fast -ffast-math  -fgnu89-inline"
+export TARGET_LOPT="-s -Wl,--as-needed"
+export CFLAGS="-march=$TARGET_SUBARCH -mcpu=$TARGET_CPU $TARGET_FPU_FLAGS -mabi=aapcs-linux $TARGET_COPT $TARGET_EXTRA_FLAGS"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-march=$TARGET_SUBARCH -mtune=$TARGET_CPU $TARGET_LOPT"
+
+# Fixup SDK setup script.
 sed -i 's/USE_BUILDROOT=1/USE_BUILDROOT=0/' tools/rbp/setup-sdk.sh
 sed -i 's/TOOLCHAIN=\/usr\/local\/bcm-gcc/TOOLCHAIN=\/usr/' tools/rbp/setup-sdk.sh
 sudo sh tools/rbp/setup-sdk.sh
+
+# Fixup make file, then compile the build tools.
 sed -i 's/cd $(SOURCE); $(CONFIGURE)/#cd $(SOURCE); $(CONFIGURE)/' tools/rbp/depends/xbmc/Makefile
 make -C tools/rbp/depends/xbmc/
 if [ $? -ne 0 ]; then
-	cd /home/pi/xbmc_install
+	cd /home/pi/CyrusBuiltHTPC/xbmc_install
     exit 1
 fi
-cd /home/pi/xbmc_install
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
 exit 0

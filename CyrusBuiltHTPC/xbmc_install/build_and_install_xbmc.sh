@@ -44,7 +44,7 @@ print_error() {
 main() {
     echo
     echo "Checking for required components..."
-    cd /home/pi/xbmc_install
+    cd /home/pi/CyrusBuiltHTPC/xbmc_install
 
 # Check to make sure all the scripts we need are present.
     if [ ! -f "get_platform_prereqs.sh" ]; then
@@ -54,6 +54,11 @@ main() {
 
 	if [ ! -f "build_and_install_libcec.sh" ]; then
 		echo "ERROR: Missing component: build_and_install_libcec.sh"
+		return $ERR_FILE_MISSING
+	fi
+	
+	if [ ! -f "build_and_install_taglib.sh" ]; then
+		echo "ERROR: Missing component: build_and_install_taglib.sh"
 		return $ERR_FILE_MISSING
 	fi
 
@@ -109,6 +114,11 @@ main() {
     if [ $? -ne 0 ]; then
         return $ERR_GET_XBMC_FAIL
     fi
+
+	./build_and_install_taglib.sh
+	if [ $? -ne 0 ]; then
+		return $ERR_GET_PREREQS_FAIL
+	fi
 
     ./compile_xbmc_buildtools.sh
     if [ $? -ne 0 ]; then

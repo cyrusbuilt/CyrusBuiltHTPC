@@ -133,6 +133,40 @@ check_can_reboot() {
 	done
 }
 
+# Check to see if we can relocate rootfs to an external drive.
+check_can_relocate_rootfs() {
+	local canrelocate
+	echo "Would you like to relocate rootfs to an external drive at this time?"
+	echo "BE ADVISED: You MUST have and EXT4-formatted drive already attached"
+	echo "to a USB port."
+	while true; do
+		read -p "Relocate now (Y/n)?: " canrelocate
+		case $canrelocate in
+			[Yy]* ) return 0;;
+			[Nn]* ) return 1;;
+			* ) echo "Please answer yes or no.";;
+		esac
+	done
+}
+
+# Prompt user to see if they want to relocate rootfs here?
+if check_can_relocate_rootfs; then
+	MOUNTPOINT=/mnt/sda1
+	if [ -d $MOUNTPOINT ]; then
+		echo "Creating mount point for sda1..."
+		sudo mkdir $MOUNTPOINT
+		sudo chown pi:pi $MOUNTPOINT
+	fi
+	echo "Mounting drive..."
+	sudo mount /dev/sda1 $MOUNTPOINT
+	echo
+	echo "RSYNC'ing rootfs to $MOUNTPOINT ..."
+	echo
+	sudo rsync -avxS /media/rootfs /mnt/sda1
+	sudo cp cmdline.txt /boot/
+	sudo chown root:root /boot/cmdline.txt
+fi
+
 echo
 echo "You must reboot for the configuration to take effect."
 if check_can_reboot; then

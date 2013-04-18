@@ -1,9 +1,9 @@
 #!/bin/sh
 
-#  get_xbmc.sh
+#  build_and_install_taglib.sh
 #  
 #
-#  Created by Cyrus on 2/24/13.
+#  Created by Cyrus on 2/25/13.
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,33 +19,16 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-#  SYNOPSIS: Downloads XBMC using git.
+#  SYNOPSIS: Build and installs taglib.
 #
 
-# Blow away the local source from git, if it exists.
-LOCAL_GIT_SRC="/home/pi/CyrusBuiltHTPC/xbmc_install/xbmc-rbp"
-if [ -d $LOCAL_GIT_SRC ]; then
-    echo "Removing $LOCAL_GIT_SRC ..."
-    rm -rf $LOCAL_GIT_SRC
-fi
-
-# Get XBMC.
 echo
-echo "Retrieving latest stable XBMC release..."
-mkdir $LOCAL_GIT_SRC
-cd $LOCAL_GIT_SRC
-wget http://mirrors.xbmc.org/releases/source/xbmc-12.1.tar.gz
-if [ $? -ne 0 ]; then
-    exit 1
-else
-	tar xvfz xbmc-12.1.tar.gz
-	if [ $? -ne 0 ]; then
-		echo
-		echo "ERROR: Failed to decompress XBMC source."
-		exit 1
-	fi
-fi
-cd ..
-exit 0
-
-
+echo "Building and installing taglib...."
+echo
+TAGLIB_SOURCE=/home/pi/CyrusBuiltHTPC/xbmc_install/xbmc-rbp/xbmc-12.1/lib
+cd $TAGLIB_SOURCE
+make -C taglib
+sudo make -C taglib install
+err=$?
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
+exit $err

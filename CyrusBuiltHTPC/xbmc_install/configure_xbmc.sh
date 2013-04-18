@@ -24,20 +24,28 @@
 
 echo
 echo "Configuring XBMC for compile ..."
-cd xbmc-rbp/
-./configure --prefix=/usr --build=arm-linux-gnueabihf --host=arm-linux-gnueabihf \
+cd xbmc-rbp/xbmc-12.1
+
+# This *might* be required for XBMC to compile successfully so the that
+# proprietary version of the libs get picked up. ONLY uncomment the following
+# line if necessary. Otherwise, leave it the hell alone.
+sudo apt-get remove libegl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev
+
+./configure --prefix=/usr/local --build=arm-linux-gnueabihf --host=arm-linux-gnueabihf \
 --localstatedir=/var/lib --with-platform=raspberry-pi --disable-gl --enable-gles \
 --disable-x11 --disable-sdl --enable-ccache --enable-optimizations \
---enable-external-libraries --disable-goom --disable-hal --disable-pulse \
+--disable-external-libraries --disable-goom --disable-hal --disable-pulse \
 --disable-vaapi --disable-vdpau --disable-xrandr --disable-airplay \
 --disable-alsa --enable-avahi --disable-libbluray --disable-dvdcss \
---disable-debug --disable-joystick --enable-mid --disable-nfs --disable-profiling \
+--disable-debug --disable-joystick --disable-mid --enable-nfs --disable-profiling \
 --disable-projectm --enable-rsxs --enable-rtmp --disable-vaapi \
 --disable-vdadecoder --disable-external-ffmpeg  --disable-optical-drive \
---enable-libcec
+--enable-libcec --enable-player=omxplayer
 if [ $? -ne 0 ]; then
-	cd /home/pi/xbmc_install
+	cd /home/pi/CyrusBuiltHTPC/xbmc_install
     exit 1
 fi
-cd /home/pi/xbmc_install
+
+sed -i 's/ifeq (1,1)/ifeq (0,1)/' tools/TexturePacker/Makefile
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
 exit 0

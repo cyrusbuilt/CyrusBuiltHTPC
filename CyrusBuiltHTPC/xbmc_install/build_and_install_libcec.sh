@@ -29,7 +29,7 @@
 sudo apt-get install libraspberrypi-dev
 
 # Blow away the local source from git, if it exists.
-LOCAL_LIB_SRC="/home/pi/xbmc_install/libcec"
+LOCAL_LIB_SRC="/home/pi/CyrusBuiltHTPC/xbmc_install/libcec"
 if [ -d $LOCAL_LIB_SRC ]; then
 	echo "Removing $LOCAL_LIB_SRC ..."
 	rm -rf $LOCAL_LIB_SRC
@@ -37,7 +37,7 @@ fi
 
 # Get libCEC.
 echo
-echo "Clonging libCEC source from GIT repository..."
+echo "Cloning libCEC source from GIT repository..."
 git clone --depth 1 git://github.com/Pulse-Eight/libcec.git
 if [ $? -ne 0 ]; then
 	exit 1
@@ -47,11 +47,12 @@ cd $LOCAL_LIB_SRC
 ./bootstrap
 echo
 echo
-./configure --with-rpi-include-path="/opt/vc/include" --with-rpi-lib-path="/opt/vc/lib/libbcm_host.so"
+./configure --with-rpi-lib-path="/opt/vc/lib" --with-rpi-include-path="/opt/vc/include"
 echo
 echo
 make
 echo
 sudo make install
-cd /home/pi/xbmc_install
-exit $?
+err=$?
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
+exit $err

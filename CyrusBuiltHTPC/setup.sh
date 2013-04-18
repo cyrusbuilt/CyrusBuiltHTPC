@@ -34,5 +34,10 @@ echo
 echo "To build and install XBMC, navigate to:"
 echo "/home/pi/xbmc_install"
 echo "and run build-and-install-xbmc.sh"
+echo
+echo
+echo "Prior to building XBMC, it is recommended that"
+echo "you run 'systemupdate' in order to be sure you"
+echo "have the latest core libraries and system firmware."
 exit 0
 
