@@ -31,16 +31,16 @@ cd xbmc-rbp/xbmc-12.1
 # line if necessary. Otherwise, leave it the hell alone.
 sudo apt-get remove libegl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev
 
-./configure --prefix=/usr/local --build=arm-linux-gnueabihf --host=arm-linux-gnueabihf \
+./configure --prefix=/usr --build=arm-linux-gnueabihf --host=arm-linux-gnueabihf \
 --localstatedir=/var/lib --with-platform=raspberry-pi --disable-gl --enable-gles \
 --disable-x11 --disable-sdl --enable-ccache --enable-optimizations \
---disable-external-libraries --disable-goom --disable-hal --disable-pulse \
+--enable-external-libraries --disable-goom --disable-hal --disable-pulse \
 --disable-vaapi --disable-vdpau --disable-xrandr --disable-airplay \
 --disable-alsa --enable-avahi --disable-libbluray --disable-dvdcss \
 --disable-debug --disable-joystick --disable-mid --enable-nfs --disable-profiling \
 --disable-projectm --enable-rsxs --enable-rtmp --disable-vaapi \
 --disable-vdadecoder --disable-external-ffmpeg  --disable-optical-drive \
---enable-libcec --enable-player=omxplayer
+--enable-libcec --enable-player=omxplayer --disable-airtunes
 if [ $? -ne 0 ]; then
 	cd /home/pi/CyrusBuiltHTPC/xbmc_install
     exit 1
