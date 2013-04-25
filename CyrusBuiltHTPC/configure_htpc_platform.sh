@@ -96,16 +96,16 @@ sudo chown root:root /boot/config.txt
 sudo cp sudoers /etc/
 sudo chown root:root /etc/sudoers
 sudo cp rc.local /etc/
-sudo chown /etc/rc.local
+sudo chown root:root /etc/rc.local
 sudo chmod +rx /etc/rc.local
 sudo cp modules /etc/
-sudo chown /etc/modules
+sudo chown root:root /etc/modules
 sudo cp fstab /etc/
-sudo chown /etc/fstab
+sudo chown root:root /etc/fstab
 
 # Required for XBMC to have the authority to shutdown/reboot the system.
 sudo cp "20-xbmclive.pkla" "/var/lib/polkit-1/localauthority/50-local.d/"
-sudo chown "/var/lib/polkit-1/localauthority/50-local.d/20-xbmclive.pkla"
+sudo chown root:root "/var/lib/polkit-1/localauthority/50-local.d/20-xbmclive.pkla"
 
 # Get rid of all the unnecessary shit. These are probably not present, but just
 # to be on the safe side...
@@ -152,7 +152,7 @@ check_can_relocate_rootfs() {
 # Prompt user to see if they want to relocate rootfs here?
 if check_can_relocate_rootfs; then
 	MOUNTPOINT=/mnt/sda1
-	if [ -d $MOUNTPOINT ]; then
+	if [ ! -d $MOUNTPOINT ]; then
 		echo "Creating mount point for sda1..."
 		sudo mkdir $MOUNTPOINT
 		sudo chown pi:pi $MOUNTPOINT
@@ -162,11 +162,14 @@ if check_can_relocate_rootfs; then
 	echo
 	echo "RSYNC'ing rootfs to $MOUNTPOINT ..."
 	echo
-	sudo rsync -avxS /media/rootfs /mnt/sda1
+	sudo rsync -avxS / /mnt/sda1
 	sudo cp cmdline.txt /boot/
 	sudo chown root:root /boot/cmdline.txt
 fi
 
+echo
+echo "Package cleanup..."
+sudo apt-get autoremove
 echo
 echo "You must reboot for the configuration to take effect."
 if check_can_reboot; then

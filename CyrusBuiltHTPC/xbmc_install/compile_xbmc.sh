@@ -29,7 +29,7 @@ cd xbmc-rbp/xbmc-12.1
 # Do some sed magic to fixup the makefiles.
 sed -i 's/-msse2//' lib/libsquish/Makefile
 sed -i 's/-DSQUISH_USE_SSE=2//' lib/libsquish/Makefile
-sudo sed -i 's/#include "vchost_config.h"/#include "interface\/vmc_host\/linux\/vchost_config.h"/' /usr/include/interface/vmcs_host/vcgencmd.h
+sudo sed -i 's/#include "vchost_config.h"/#include "interface\/vmcs_host\/linux\/vchost_config.h"/' /usr/include/interface/vmcs_host/vcgencmd.h
 make
 if [ $? -ne 0 ]; then
 	cd /home/pi/CyrusBuiltHTPC/xbmc_install
