@@ -34,7 +34,7 @@ sudo chmod +rx /usr/bin/systemshutdown
 sudo chmod +rx /usr/bin/systemupdate
 chmod +rx ~/backup_configs.sh
 chmod +rx ~/restore_configs.sh
-cd /home/pi/CyrusBuiltHTPC/xbmc_install
+cd ~/CyrusBuiltHTPC/xbmc_install
 chmod +rx *.sh
 
 cd ~/

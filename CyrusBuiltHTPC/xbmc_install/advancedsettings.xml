@@ -1,0 +1,13 @@
+<advancedSettings>
+	<fanartres>540</fanartres>
+	<imageres>512</imagres>
+	<useddsfanart>false</useddsfanart>
+	<lookandfeel>
+		<enablerssfeeds>true</enablerssfeeds>
+	</lookandfeel>
+	<gui>
+		<algorithmdirtyregions>3</algorithmdirtyregions>
+		<nofliptimeout>0</nofliptimeout>
+	</gui>
+	<bginfoloadermaxthreads>2</bginfoloaderthreads>
+</advancedSettings>

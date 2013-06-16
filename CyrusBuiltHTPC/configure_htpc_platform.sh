@@ -63,7 +63,9 @@ check_backup_configs() {
 
 echo
 echo
-echo "Configuring CyrusBuilt HTPC Platform..."
+echo "Configuring CyrusBuilt HTPC Platform ..."
+echo
+echo "Installing RTC dependencies ..."
 # These are required for the RTC to function.
 sudo apt-get install upower pm-utils i2c-utils
 
@@ -75,10 +77,8 @@ fi
 # These are optional, but useful.
 echo
 echo "Installing optional packages ..."
-sudo apt-get install gparted
-sudo apt-get install scite jedit gkrellm    # This will also install open-jdk stuff.
-sudo apt-get install htop ffmpeg
-sudo apt-get install pidgin chromium
+# This will also install open-jdk stuff.
+sudo apt-get install gparted pidgin chromium htop ffmpeg scite jedit gkrellm rsync
 
 # Ask user to backup system configs.
 if check_backup_configs; then
