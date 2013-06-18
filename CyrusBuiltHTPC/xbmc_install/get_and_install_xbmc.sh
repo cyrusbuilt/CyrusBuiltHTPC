@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#  get_xbmc.sh
+#  get_and_install_xbmc.sh
 #  
 #
 #  Created by Cyrus on 2/24/13.
@@ -35,21 +35,8 @@ function check_can_configure() {
 	done
 }
 
-echo "Configuring XBMC source repo ..."
-TARGET='/etc/apt/sources.list.d'
-FILE='mene.list'
-if [ ! -f  '$TARGET/$FILE']; then
-	sudo cp -f $FILE $TARGET
-	sudo chown root:root '$TARGET/$FILE'
-fi
-
-echo "Installing XBMC ..."
-echo
-sudo addgroup --system input
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 5243CDED
-sudo apt-get update
-sudo apt-get install xbmc
-if [ $? -ne 0 ]; then
+# Do post-install configuration.
+function configure_xbmc() {
 	echo
 	echo "Configuring XMBC ..."
 	PI_USERDATA='~/.xbmc/userdata'
@@ -74,7 +61,26 @@ if [ $? -ne 0 ]; then
 	chown pi:pi '$PI_USERDATA/advancedsettins.xml'
 	sudo cp -f advancedsettings.xml $ROOT_USERDATA
 	sudo chown root:root '$ROOT_USERDATA/advancedsettings.xml'
-	
+}
+
+# And XBMC source repo.
+echo "Configuring XBMC source repo ..."
+TARGET='/etc/apt/sources.list.d'
+FILE='mene.list'
+if [ ! -f  '$TARGET/$FILE']; then
+	sudo cp -f $FILE $TARGET
+	sudo chown root:root '$TARGET/$FILE'
+fi
+
+# Get and install XBMC. Add auth key if needed.
+echo "Installing XBMC ..."
+echo
+sudo addgroup --system input
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 5243CDED
+sudo apt-get update
+sudo apt-get install xbmc
+if [ $? -ne 0 ]; then
+	configure_xbmc
 	echo
 	echo
 	echo "XBMC installation complete. It is necessary to configure the platform"
@@ -87,7 +93,8 @@ if [ $? -ne 0 ]; then
 	else
 		cd ~/
 	fi
+	exit 0
 fi
-exit 0
+exit 1
 
 
