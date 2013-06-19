@@ -24,7 +24,7 @@
 
 # Check to see if the user wants to install AutoFS, which automounts filesystems
 # on inserted drives and/or network filesystems (NFS, CiFS, SMB, etc).
-check_install_autofs() {
+function check_install_autofs() {
 	echo
 	local canproceed
 	while true; do
@@ -39,7 +39,7 @@ check_install_autofs() {
 
 # Check to see if the user wants to backup the local system configs prior to
 # installing the new ones.
-check_backup_configs() {
+function check_backup_configs() {
 	echo
 	local canbackup
 	echo "WARNING:"
@@ -121,7 +121,7 @@ echo
 echo "Configuration finished."
 
 # Check to see if we can reboot.
-check_can_reboot() {
+function check_can_reboot() {
 	local canreboot
 	while true; do
 		read -p "Reboot now (Y/n)?: " canreboot
@@ -134,7 +134,7 @@ check_can_reboot() {
 }
 
 # Check to see if we can relocate rootfs to an external drive.
-check_can_relocate_rootfs() {
+function check_can_relocate_rootfs() {
 	local canrelocate
 	echo "Would you like to relocate rootfs to an external drive at this time?"
 	echo "BE ADVISED: You MUST have and EXT4-formatted drive already attached"
@@ -157,16 +157,27 @@ if check_can_relocate_rootfs; then
 		sudo mkdir $MOUNTPOINT
 		sudo chown pi:pi $MOUNTPOINT
 	fi
+	
+	# Try mounting the USB HDD. If successful, rsync rootfs to it,
+	# then modify the boot configuration to point to the correct
+	# location for stage 2.
 	echo "Mounting drive..."
 	sudo mount /dev/sda1 $MOUNTPOINT
-	echo
-	echo "RSYNC'ing rootfs to $MOUNTPOINT ..."
-	echo
-	sudo rsync -avxS / /mnt/sda1
-	sudo cp cmdline.txt /boot/
-	sudo chown root:root /boot/cmdline.txt
+	if [ $? -ne 0 ]; then
+		echo
+		echo "ERROR: Unable to mount /dev/sda1 to $MOUNTPOINT."
+		echo "ERROR: Cannot relocate rootfs."
+	else
+		echo
+		echo "RSYNC'ing rootfs to $MOUNTPOINT ..."
+		echo
+		sudo rsync -avxS / /mnt/sda1
+		sudo cp cmdline.txt /boot/
+		sudo chown root:root /boot/cmdline.txt
+	fi
 fi
 
+# Get rid of un-needed packages, then ask if we can reboot.
 echo
 echo "Package cleanup..."
 sudo apt-get autoremove

@@ -23,7 +23,7 @@
 #
 
 # Checks to see if the user wants to remove the backup once its been restored.
-check_remove_backup() {
+function check_remove_backup() {
 	echo
 	local canremove
 	while true; do

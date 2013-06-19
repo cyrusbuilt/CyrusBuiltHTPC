@@ -26,7 +26,7 @@
 echo
 echo
 echo "Backing up custom system configs..."
-cd /home/pi
+cd ~/
 CURRENT_DIR=`pwd`
 
 # create the backup directory if it doesn't exist.

@@ -31,12 +31,12 @@ chmod +rx configure_htpc_platform.sh
 echo
 echo "Setup complete."
 echo
-echo "To build and install XBMC, navigate to:"
-echo "/home/pi/xbmc_install"
-echo "and run build-and-install-xbmc.sh"
+echo "To download and install XBMC, navigate to:"
+echo "~/CyrusBuiltHTPC/xbmc_install"
+echo "and run get_and_install_xbmc.sh"
 echo
 echo
-echo "Prior to building XBMC, it is recommended that"
+echo "Prior to installing XBMC, it is recommended that"
 echo "you run 'systemupdate' in order to be sure you"
 echo "have the latest core libraries and system firmware."
 exit 0

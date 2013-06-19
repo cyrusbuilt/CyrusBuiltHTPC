@@ -39,8 +39,8 @@ function check_can_configure() {
 function configure_xbmc() {
 	echo
 	echo "Configuring XMBC ..."
-	PI_USERDATA='~/.xbmc/userdata'
-	ROOT_USERDATA='~/root/.xbmc/userdata'
+	local PI_USERDATA='~/.xbmc/userdata'
+	local ROOT_USERDATA='~/root/.xbmc/userdata'
 	if [ -d $PI_USERDATA ]; then
 		rm -rf $PI_USERDATA
 	fi
@@ -79,22 +79,26 @@ sudo addgroup --system input
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 5243CDED
 sudo apt-get update
 sudo apt-get install xbmc
-if [ $? -ne 0 ]; then
-	configure_xbmc
+ERR=$?
+if [ $ERR -ne 0 ]; then
 	echo
-	echo
-	echo "XBMC installation complete. It is necessary to configure the platform"
-	echo "to enable the RTC, relocate rootfs, enable XBMC auto-start on boot, etc."
-	echo "Would you like to configure the HTPC platform now? If so, you will be"
-	echo "required to reboot when finished in order for the changes to take effect."
-	echo
-	if check_can_configure; then
-		exec ~/CyrusBuiltHTPC/configure_htpc_platform.sh
-	else
-		cd ~/
-	fi
-	exit 0
+	echo "ERROR: XBMC installation failed. Error code: $ERR"
+	exit $ERR 
 fi
-exit 1
+
+configure_xbmc
+echo
+echo
+echo "XBMC installation complete. It is necessary to configure the platform"
+echo "to enable the RTC, relocate rootfs, enable XBMC auto-start on boot, etc."
+echo "Would you like to configure the HTPC platform now? If so, you will be"
+echo "required to reboot when finished in order for the changes to take effect."
+echo
+if check_can_configure; then
+	exec ~/CyrusBuiltHTPC/configure_htpc_platform.sh
+else
+	cd ~/
+fi
+exit 0
 
 
