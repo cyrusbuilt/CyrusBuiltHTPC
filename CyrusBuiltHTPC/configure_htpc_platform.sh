@@ -40,8 +40,8 @@ function check_install_autofs() {
 # Check to see if the user wants to backup the local system configs prior to
 # installing the new ones.
 function check_backup_configs() {
-	echo
 	local canbackup
+	echo
 	echo "WARNING:"
 	echo "About to install custom system configs. This will replace rc.local, sudoers, modules,"
 	echo "fstab, and config.txt. In doing so, the system will be overclocked to 800MHz and the"
@@ -56,7 +56,20 @@ function check_backup_configs() {
 		case $canbackup in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;
-			* ) echo "please answer yes or no.";;
+			* ) echo "Please answer yes or no.";;
+		esac
+	done
+}
+
+# Check to see if the user has installed an RTC module and would like to load support.
+function check_can_install_rtc() {
+	local candortc
+	while true; do
+		read -p "Do you have an RTC (Real-Time Clock) module installed? (Y/n): " candortc
+		case $candortc
+			[Yy]* ) return 0;;
+			[Nn]* ) return 1;;
+			* ) echo "Please answer yes or no.";;
 		esac
 	done
 }
@@ -65,9 +78,20 @@ echo
 echo
 echo "Configuring CyrusBuilt HTPC Platform ..."
 echo
-echo "Installing RTC dependencies ..."
-# These are required for the RTC to function.
-sudo apt-get install upower pm-utils i2c-utils
+
+# Ask user to backup system configs.
+if check_backup_configs; then
+	./backup_configs.sh
+fi
+
+# If the user allows it, install RTC support.
+if check_can_install_rtc; then
+	echo "Installing RTC dependencies ..."
+	#These are required for the RTC to function.
+	sudo apt-get install upower pm-utils i2c-utils
+	sudo cp modules /etc/
+	sudo chown root:root /etc/modules
+fi
 
 # If the user allows it, install AutoFS.
 if check_install_autofs; then
@@ -79,11 +103,6 @@ echo
 echo "Installing optional packages ..."
 # This will also install open-jdk stuff.
 sudo apt-get install gparted pidgin chromium htop ffmpeg scite jedit gkrellm rsync
-
-# Ask user to backup system configs.
-if check_backup_configs; then
-	./backup_configs.sh
-fi
 
 # Install all our custom configs.
 echo
@@ -98,8 +117,6 @@ sudo chown root:root /etc/sudoers
 sudo cp rc.local /etc/
 sudo chown root:root /etc/rc.local
 sudo chmod +rx /etc/rc.local
-sudo cp modules /etc/
-sudo chown root:root /etc/modules
 sudo cp fstab /etc/
 sudo chown root:root /etc/fstab
 
@@ -138,7 +155,8 @@ function check_can_relocate_rootfs() {
 	local canrelocate
 	echo "Would you like to relocate rootfs to an external drive at this time?"
 	echo "BE ADVISED: You MUST have and EXT4-formatted drive already attached"
-	echo "to a USB port."
+	echo "to a USB port. This script assumes /mnt/sda1.  If the device has not"
+	echo "yet been mounted, then it will be mounted first."
 	while true; do
 		read -p "Relocate now (Y/n)?: " canrelocate
 		case $canrelocate in
@@ -184,7 +202,7 @@ sudo apt-get autoremove
 echo
 echo "You must reboot for the configuration to take effect."
 if check_can_reboot; then
-	exec /usr/bin/systemreboot
+	./usr/bin/systemreboot
 else
 	cd ~/
 fi

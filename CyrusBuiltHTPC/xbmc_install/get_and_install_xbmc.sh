@@ -19,7 +19,10 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-#  SYNOPSIS: Downloads XBMC using git.
+#  SYNOPSIS: Downloads and installs XBMC via APT, then configures it.
+#  This should only be ran on Raspbian Wheezy (2012-10-28) or higher.
+#  It would be a good idea to update the system (apt-get update) prior
+#  to running this.
 #
 
 # Check to see if we can configure the HTPC platform.
@@ -86,6 +89,7 @@ if [ $ERR -ne 0 ]; then
 	exit $ERR 
 fi
 
+# Configure XBMC and then offer to configure the host platform for the user.
 configure_xbmc
 echo
 echo
@@ -95,7 +99,7 @@ echo "Would you like to configure the HTPC platform now? If so, you will be"
 echo "required to reboot when finished in order for the changes to take effect."
 echo
 if check_can_configure; then
-	exec ~/CyrusBuiltHTPC/configure_htpc_platform.sh
+	sh ~/CyrusBuiltHTPC/configure_htpc_platform.sh
 else
 	cd ~/
 fi

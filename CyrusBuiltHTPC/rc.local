@@ -17,9 +17,14 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-# Init RTC (ds1307)
-echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
+# Init RTC (ds1307) if module present.
+modules='/etc/modules'
+if grep -q "rtc-ds1307" $modules; then
+	echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
+fi
 
-# Auto-start XBMC
-/usr/bin/xbmc-rpi
+# Auto-start XBMC if present.
+if [ -f /usr/bin/xbmc-rpi ]; then
+	./usr/bin/xbmc-rpi
+fi
 exit 0
