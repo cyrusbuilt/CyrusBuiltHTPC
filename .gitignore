@@ -1,2 +1,5 @@
 # MacOS specific stuff
 .DS_Store
+
+#QtCreator user settings
+*.creator.user
