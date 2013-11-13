@@ -1,0 +1,6 @@
+PMUCommands KEYWORD3
+PMUCommandInfo  KEYWORD3
+RaspiHostCommClass  KEYWORD3
+RaspiHostComm   KEYWORD3
+begin   KEYWORD2
+loop    KEYWORD2

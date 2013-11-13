@@ -1,5 +1,5 @@
 /*
-  Raspi_ATX_PMU
+ Raspi_ATX_PMU
  v1.8b
  
  Author:
@@ -43,8 +43,10 @@
  implements a pre-emptive RTOS kernel.
  */
 
+#include <Arduino.h>
 #include <ButtonEvent.h>
 #include <PMUState.h>
+#include <RaspiHostComm.h>
 
 #define VERSION "Raspi_ATX_PMU V1.8b"
 
@@ -69,21 +71,43 @@ bool msgPrinted = false;
 #define EXT_LED 11         // External (chassis) LED on pin 11.
 #define SHUTDOWN_DETECT 5  // Shutdown detection on pin 5.
 #define TRIGGER 7          // ATX Trigger on pin 7.
+#define SOFT_RX A0         // SoftwareSerial RS232 RX pin.
+#define SOFT_TX A1         // SoftwareSerial RS232 TX pin.
 
 // Local vars.
-const int holdTime = 3000;             // How long to wait to consider the reset button held down.
-const int interval = 200;              // The interval to check button state.
-const int shutdownThreshold = 4000;    // The amount of time to wait to consider the RPi shut down.
-const int shutdownDetectDelay = 500;   // The amount of time to delay shutdown detection.
-int state = PMUStateClass::OFF;        // The current system state.
-int stateOld = state;                  // The old system state (used for comparison).
-int timeDown = 0;                      // The amount of time the RPi appears to have been down.
+const int holdTime = 3000;                  // How long to wait to consider the reset button held down.
+const int interval = 200;                   // The interval to check button state.
+const int shutdownThreshold = 4000;         // The amount of time to wait to consider the RPi shut down.
+const int shutdownDetectDelay = 500;        // The amount of time to delay shutdown detection.
+int state = PMUStateClass::OFF;             // The current system state.
+int stateOld = state;                       // The old system state (used for comparison).
+int timeDown = 0;                           // The amount of time the RPi appears to have been down.
 
 // Forward declaration of DuinOS tasks.
 declareTaskLoop(shutdownDetection);
 declareTaskLoop(buttonEventLoop);
+declareTaskLoop(processCommands);
 
-// Power button down event handler.
+/**
+ * @brief getStateString Gets the string representation of an output state.
+ * @param state The PMU state.
+ * @return The string representation of the state.
+ */
+String getStateString(int state) {
+    String stateStr = "OFF";
+    if (state == PMUStateClass::ON) {
+        stateStr = "ON";
+    }
+    else if (state == PMUStateClass::RESETING) {
+        stateStr = "RESETING";
+    }
+    return stateStr;
+}
+
+/**
+ * @brief onPwrDown Power button down event handler.
+ * @param sender The sender event information.
+ */
 void onPwrDown(ButtonInformation* sender) {
   if (int(sender->analogValue) == LOW) {
     return;
@@ -144,7 +168,10 @@ void onPwrDown(ButtonInformation* sender) {
   }
 }
 
-// Power button up event handler.
+/**
+ * @brief onPwrUp Power button up event handler.
+ * @param sender The sender event information.
+ */
 void onPwrUp(ButtonInformation* sender) {
   if (int(sender->analogValue) == LOW) {
 #ifdef DEBUG
@@ -154,7 +181,10 @@ void onPwrUp(ButtonInformation* sender) {
   }
 }
 
-// Power button hold event handler.
+/**
+ * @brief onPwrHold Power button hold event handler.
+ * @param sender The sender event information.
+ */
 void onPwrHold(ButtonInformation* sender) {
   if (int(sender->analogValue) == HIGH) {
 #ifdef DEBUG
@@ -164,7 +194,10 @@ void onPwrHold(ButtonInformation* sender) {
   }
 }
 
-// Power button double event handler.
+/**
+ * @brief onPwrDouble Power button double event handler.
+ * @param sender The sender event information.
+ */
 void onPwrDouble(ButtonInformation* sender) {
   if (int(sender->analogValue) == HIGH) {
 #ifdef DEBUG
@@ -174,7 +207,10 @@ void onPwrDouble(ButtonInformation* sender) {
   }
 }
 
-// Reset button down event handler.
+/**
+ * @brief onRstDown Reset button down event handler.
+ * @param sender The sender event information.
+ */
 void onRstDown(ButtonInformation* sender) {
   if (int(sender->analogValue) == LOW) {
     return;
@@ -196,7 +232,10 @@ void onRstDown(ButtonInformation* sender) {
   }
 }
 
-// Reset button up event hanlder.
+/**
+ * @brief onRstUp Reset button up event hanlder.
+ * @param sender The sender event information.
+ */
 void onRstUp(ButtonInformation* sender) {
   if (int(sender->analogValue) == LOW) {
     return;
@@ -218,7 +257,10 @@ void onRstUp(ButtonInformation* sender) {
   }
 }
 
-// Reset button hold event handler.
+/**
+ * @brief onRstHold Reset button hold event handler.
+ * @param sender The sender event information.
+ */
 void onRstHold(ButtonInformation* sender) {
   if (int(sender->analogValue) == LOW) {
     return;
@@ -238,7 +280,10 @@ void onRstHold(ButtonInformation* sender) {
   }
 }
 
-// Reset button double-press event handler.
+/**
+ * @brief onRstDouble Reset button double-press event handler.
+ * @param sender The sender event information.
+ */
 void onRstDouble(ButtonInformation* sender) {
   if (int(sender->analogValue) == HIGH) {
 #ifdef DEBUG
@@ -246,6 +291,83 @@ void onRstDouble(ButtonInformation* sender) {
     Serial.println("Input: Reset Button. Event: Double-press. Action: None.\n");
 #endif // DEBUG
   }
+}
+
+/**
+ * @brief softReset Instructs the Arduino to soft-reset. This method effectively wipes the contents
+ * of SRAM and restarts the sketch. This DOES NOT hard-reset, so the pin states will
+ * NOT change!! Peripheral reset does not occur.
+ */
+void softReset() {
+    asm volatile ("  jmp 0");
+}
+
+/**
+ * @brief onCmdAcknowledged Handles the command acknowledged event.
+ * @param sender The sender event information.
+ */
+void onCmdAcknowledged(PMUCommandInfo* sender) {
+    RaspiHostComm.println("ATX_PMU: Command acknowledged.");
+}
+
+/**
+ * @brief onCmdReceived Handles the valid command received event.
+ * @param sender The sender event information.
+ */
+void onCmdReceived(PMUCommandInfo* sender) {
+    ButtonInformation* bi;
+    bi->analogValue = HIGH;
+    switch (sender->commandType) {
+        case PMUCommand_FORCE_PSU_OFF:
+            RaspiHostComm.println("WARNING: Forcing power off...");
+            delay(500);
+            onPwrDown(bi);
+            break;
+        case PMUCommand_FORCE_PSU_RESET:
+            RaspiHostComm.println("WARNING: Forcing PSU reset...");
+            onRstDown(bi);
+            delay(500);
+            onRstUp(bi);
+            break;
+        case PMUCommand_FW_SOFT_RESET:
+            RaspiHostComm.println("Initiating firmware soft-reset...");
+            delay(500);
+            softReset();
+            break;
+        case PMUCommand_GETSTATUS:
+            String stateStr = getStateString(state);
+            RaspiHostComm.println("PSU State: " + stateStr);
+
+            String ledStateStr = "";
+            String relayStateStr = "";
+            String trigStateStr = "";
+            switch  (state) {
+                case PMUStateClass::OFF:
+                    ledStateStr = getStateString(int(LOW));
+                    relayStateStr = ledStateStr;
+                    trigStateStr = ledStateStr;
+                    break;
+                case PMUStateClass::ON:
+                    ledStateStr = getStateString(int(HIGH));
+                    relayStateStr = ledStateStr;
+                    trigStateStr = ledStateStr;
+                    break;
+                case PMUStateClass::RESETING:
+                    ledStateStr = getStateString(int(LOW));
+                    relayStateStr = getStateString(int(HIGH));
+                    trigStateStr = relayStateStr;
+                    break;
+            }
+
+            RaspiHostComm.println("");
+            RaspiHostComm.println("************ ATX PSU Status ************");
+            RaspiHostComm.println("Output: Power Relay (12V). Action: " + relayStateStr);
+            RaspiHostComm.println("Output: Power Relay (5V). Action: " + relayStateStr);
+            RaspiHostComm.println("Output: Status LED.  Action: " + ledStateStr);
+            RaspiHostComm.println("Output: Ext St LED.  Action: " + ledStateStr);
+            RaspiHostComm.println("Output: ATX Trigger. Action: " + trigStateStr);
+            break;
+    }
 }
 
 // Here we will perform shutdown detection of the RPi, and then process button
@@ -327,10 +449,17 @@ taskLoop(shutdownDetection) {
 
 // Process button events.
 taskLoop(buttonEventLoop) {
-  ButtonEvent.loop();
+    ButtonEvent.loop();
 }
 
-// Initialization routine.
+// Process incoming commands from the Pi.
+taskLoop(processCommands) {
+    RaspiHostComm.loop();
+}
+
+/**
+ * @brief setup Initialization routine.
+ */
 void setup() {
   // Wire up button events.
   ButtonEvent.addButton(short(PWR_BUTTON), onPwrDown, onPwrUp, onPwrHold, holdTime, onPwrDouble, interval);
@@ -348,7 +477,10 @@ void setup() {
   pinMode(SHUTDOWN_DETECT, INPUT);
   digitalWrite(SHUTDOWN_DETECT, HIGH);
 
-#ifdef DEBUG
+  // Open soft-serial communcation with the Raspiberry Pi host.
+  RaspiHostComm.begin(SOFT_RX, SOFT_TX, onCmdReceived, onCmdAcknowledged);
+
+#if defined(DEBUG)
   // Open serial port and wait for connection. Then dump version and pin defs.
   Serial.begin(DEBUG_BAUD_RATE);
   while (!Serial) {
@@ -359,39 +491,36 @@ void setup() {
 
   // Create the DuinOS tasks.
   createTaskLoop(shutdownDetection, LOW_PRIORITY);
+  createTaskLoop(processCommands, LOW_PRIORITY);
   createTaskLoop(buttonEventLoop, NORMAL_PRIORITY);
 }
 
-// The main loop.
+/**
+ * @brief loop The main loop.
+ */
 void loop() {
-  // All we do here is delay 10ms and then execute the next task.
-  delay(10);
-  nextTask();
+    // All we do here is delay 10ms and then execute the next task.
+    delay(10);
+    nextTask();
 }
 
 #ifdef DEBUG
-// Gets the string representation of an I/O mode.
+/**
+ * @brief getIOModeString Gets the string representation of an I/O mode.
+ * @param mode The I/O mode.
+ * @return The string representation of the mode.
+ */
 String getIOModeString(uint8_t mode) {
-  String modeStr = "INPUT";
-  if (mode > INPUT) {
-    modeStr = "OUPUT";
-  }
-  return modeStr;
+    String modeStr = "INPUT";
+    if (mode > INPUT) {
+        modeStr = "OUPUT";
+    }
+    return modeStr;
 }
 
-// Gets the string representation of an output state.
-String getStateString(int state) {
-  String stateStr = "OFF";
-  if (state == PMUStateClass::ON) {
-    stateStr = "ON";
-  }
-  else if (state == PMUStateClass::RESETING) {
-    stateStr = "RESETING";
-  }
-  return stateStr;
-}
-
-// Reports system initialization info (verions, pin defs, etc).
+/**
+ * @brief reportInit Reports system initialization info (verions, pin defs, etc).
+ */
 void reportInit() {
   delay(50);
   Serial.println("\n\n" + String(VERSION) + " initialized.\n");
