@@ -1,14 +1,54 @@
-// Only modify this file to include
-// - function definitions (prototypes)
-// - include files
-// - extern variable definitions
-// In the appropriate section
+/*
+ Raspi_ATX_PMU
+ v1.8b
+
+ Author:
+ Chris Brunner <cyrusbuilt at gmail dot com>
+
+ Copyright (c) 2013 CyrusBuilt
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+ IMPORTANT NOTE:
+ This firmware is meant for the Arduino Micro/Uno
+ Future versions will implement a HAL that will provide compatibility with
+ other boards.  However, this may be compatible as-is with other boards,
+ though it has not been tested.  This is *NOT* compatible with the
+ ATtiny-series controllers.
+
+ DEPENDENCIES:
+ This firmware is dependent on the ebl-arduino event library.
+ (http://code.google.com/p/ebl-arduino/) A copy of the library implemented
+ by this firmware should be included with the source. You will need to
+ install the library contents into your Arduino IDE's libraries folder
+ in order to compile.
+
+ This requires the PMUState library in the /lib folder for setting/checking
+ the state of the PMU.
+
+ This firmware is now dependent on DuinOS v0.4 Alpha (https://github.com/DuinOS/DuinOS).
+ This enables this firmware to perform its functions as tasks within DuinOS, which
+ implements a pre-emptive RTOS kernel.
+ */
+
 
 #ifndef Raspi_ATX_PMU_H_
 #define Raspi_ATX_PMU_H_
 
 // Board = Arduino Uno
-#define __AVR_ATmega328P__
+#define __AVR_ATmega328p__
 #define ARDUINO 103
 #define __AVR__
 #define F_CPU 16000000L
@@ -33,10 +73,6 @@
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
-//add your includes for the project here
-
-
-//end of add your includes here
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -32,17 +32,20 @@ RaspiHostCommClass::RaspiHostCommClass() {
 RaspiHostCommClass::~RaspiHostCommClass() {
     // Shutdown the serial port and destroy it.
     if (this->hostComm != NULL) {
-        this->hostComm.end();
-        this->hostComm.~SoftwareSerial();
+        // NOTE: The destructor calls SoftwareSerial::end(). Calling it here
+        // would be redundant.
+        delete this->hostComm;
     }
+
     delete this->currentCommand;
     this->initialized = false;
 }
 
-void RaspiHostCommClass::begin(short rxPin, short txPin, void (*onCmdReceived)(PMUCommandInfo* sender), void (*onAck)(PMUCommandInfo* sender)) {
+void RaspiHostCommClass::begin(uint8_t rxPin, uint8_t txPin, void (*onCmdReceived)(PMUCommandInfo* sender), void (*onAck)(PMUCommandInfo* sender)) {
     // Initialize the serial port.
-    this->hostComm = SoftwareSerial::SoftwareSerial(rxPin, txPin);
-    this->hostComm.begin(SOFT_BAUD_RATE);
+    this->hostComm = new SoftwareSerial(rxPin, txPin, false);
+    this->hostComm->begin(SOFT_BAUD_RATE);
+
     // Wire up the pins and event handlers.
     this->currentCommand->rxPin = rxPin;
     this->currentCommand->txPin = txPin;
@@ -51,16 +54,22 @@ void RaspiHostCommClass::begin(short rxPin, short txPin, void (*onCmdReceived)(P
     this->initialized = true;
 }
 
+void RaspiHostCommClass::end() {
+    if (this->initialized) {
+        this->hostComm->end();
+    }
+}
+
 void RaspiHostCommClass::loop() {
     if (!this->initialized) {
         return;
     }
 
     // If we've received data from the serial port, read and decode the command.
-    char cmd[CMD_BYTE_COUNT];
-    while (this->hostComm.available()) {
+    char* cmd = new char[CMD_BYTE_COUNT];
+    while (this->hostComm->available()) {
         for (byte i = 0; i < CMD_BYTE_COUNT; i++) {
-            cmd[i] = this->hostComm.read();
+            cmd[i] = this->hostComm->read();
             if (cmd[i] == CMD_TERMINATOR) {
                 break;
             }
@@ -76,7 +85,7 @@ void RaspiHostCommClass::loop() {
                 this->currentCommand->commandType = PMUCommand_ACK;
                 this->currentCommand->onAck(this->currentCommand);
                 delay(1000);
-                this->currentCommand->commandType = (PMUCommands)val;
+                this->currentCommand->commandType = (PMUCommands)cmd[0];
                 this->currentCommand->onCmdReceived(this->currentCommand);
                 break;
         }
@@ -87,7 +96,25 @@ void RaspiHostCommClass::loop() {
 
 void RaspiHostCommClass::println(char* line) {
     if (this->initialized) {
-        this->hostComm.println(line);
+        this->hostComm->println(line);
+    }
+}
+
+void RaspiHostCommClass::println(String& line) {
+    if (this->initialized) {
+        this->hostComm->println(line);
+    }
+}
+
+void RaspiHostCommClass::print(char *line) {
+    if (this->initialized) {
+        this->hostComm->print(line);
+    }
+}
+
+void RaspiHostCommClass::print(String& line) {
+    if (this->initialized) {
+        this->hostComm->print(line);
     }
 }
 

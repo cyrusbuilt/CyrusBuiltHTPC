@@ -26,13 +26,9 @@
 #ifndef RASPIHOSTCOMM_H
 #define RASPIHOSTCOMM_H
 
-#include "../SoftwareSerial/SoftwareSerial.h"
-
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
+#include <Arduino.h>
+#include <inttypes.h>
+#include <SoftwareSerial.h>
 
 // Soft RS232 BAUD rate. This is the connection back to the Pi for receiving commands.
 #define SOFT_BAUD_RATE 115200
@@ -58,8 +54,8 @@ enum PMUCommands
  */
 struct PMUCommandInfo
 {
-    short rxPin;                                      // Receive (RX) pin.
-    short txPin;                                      // Transmit (TX) pin.
+    uint8_t rxPin;                                    // Receive (RX) pin.
+    uint8_t txPin;                                    // Transmit (TX) pin.
     PMUCommands commandType;                          // The command type.
     void (*onCmdReceived)(PMUCommandInfo* sender);    // The command receive event handler.
     void (*onAck)(PMUCommandInfo* sender);            // The command acknowledged event handler.
@@ -91,7 +87,12 @@ class RaspiHostCommClass
      * @param onCmdReveived Method called when valid commands are received.
      * @param onAck When serial commands are received and acknowledged.
      */
-    void begin(short rxPin, short txPin, void (*onCmdReceived)(PMUCommandInfo* sender), void (*onAck)(PMUCommandInfo* sender));
+    void begin(uint8_t rxPin, uint8_t txPin, void (*onCmdReceived)(PMUCommandInfo* sender), void (*onAck)(PMUCommandInfo* sender));
+
+    /**
+     * @brief end Ends the serial connection.
+     */
+    void end();
 
     /**
      * @brief loop Command read/process loop. Typically added to the main
@@ -105,8 +106,26 @@ class RaspiHostCommClass
      */
     void println(char* line);
 
+    /**
+     * @brief println Prints a line of text to the serial port.
+     * @param line The line of text to print.
+     */
+    void println(String& line);
+
+    /**
+     * @brief print Prints text to the serial port but does not insert a new line.
+     * @param line The text to print.
+     */
+    void print(char* line);
+
+    /**
+     * @brief print Prints text to the serial port but does not insert a new line.
+     * @param line The text to print.
+     */
+    void print(String& line);
+
   private:
-    SoftwareSerial hostComm;
+    SoftwareSerial *hostComm;
     PMUCommandInfo* currentCommand;
     bool initialized;
 };

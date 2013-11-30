@@ -44,9 +44,11 @@
  */
 
 #include <Arduino.h>
+#include <DuinOS.h>
 #include <ButtonEvent.h>
 #include <PMUState.h>
 #include <RaspiHostComm.h>
+#include <SoftwareSerial.h>
 
 #define VERSION "Raspi_ATX_PMU V1.8b"
 
@@ -153,6 +155,7 @@ void onPwrDown(ButtonInformation* sender) {
       // Wait a little bit and then drop out the ATX power.
       delay(50);
       digitalWrite(TRIGGER, LOW);
+      suspendTask(shutdownDetection);
     }
 
     stateOld = state;
@@ -212,22 +215,24 @@ void onPwrDouble(ButtonInformation* sender) {
  * @param sender The sender event information.
  */
 void onRstDown(ButtonInformation* sender) {
-  if (int(sender->analogValue) == LOW) {
-    return;
-  }
+    if (int(sender->analogValue) == LOW) {
+        return;
+    }
 
-  if (state == PMUStateClass::ON) {
-    digitalWrite(RST_RELAY, HIGH);
-    digitalWrite(LED, LOW);
-    digitalWrite(EXT_LED, LOW);
-    state = PMUStateClass::RESETING;
-#ifdef DEBUG
-    String stateStr = getStateString(state);
-    Serial.println("Input: Reset Button. Event: Pressed. Action: " + stateStr);
-    Serial.println("Output: Reset Relay. Action: " + highStr);
-    Serial.println("Output: Status LED.  Action: " + lowStr);
-    Serial.println("Output: Ext St LED.  Action: " + lowStr);
-    Serial.println("Output: ATX Trigger. Action: " + highStr + "\n");
+    if (state == PMUStateClass::ON) {
+        suspendTask(shutdownDetection);
+        digitalWrite(RST_RELAY, HIGH);
+        digitalWrite(LED, LOW);
+        digitalWrite(EXT_LED, LOW);
+        state = PMUStateClass::RESETING;
+
+#if defined(DEBUG)
+        String stateStr = getStateString(state);
+        Serial.println("Input: Reset Button. Event: Pressed. Action: " + stateStr);
+        Serial.println("Output: Reset Relay. Action: " + highStr);
+        Serial.println("Output: Status LED.  Action: " + lowStr);
+        Serial.println("Output: Ext St LED.  Action: " + lowStr);
+        Serial.println("Output: ATX Trigger. Action: " + highStr + "\n");
 #endif // DEBUG
   }
 }
@@ -241,18 +246,20 @@ void onRstUp(ButtonInformation* sender) {
     return;
   }
 
-  if (state == PMUStateClass::RESETING) {
-    digitalWrite(RST_RELAY, LOW);
-    digitalWrite(LED, HIGH);
-    digitalWrite(EXT_LED, HIGH);
-    state = PMUStateClass::ON;
-#ifdef DEBUG
-    String stateStr = getStateString(state);
-    Serial.println("Input: Reset Button. Event: Released. Action: " + stateStr);
-    Serial.println("Output: Reset Relay. Action: " + lowStr);
-    Serial.println("Output: Status LED.  Action: " + highStr);
-    Serial.println("Output: Ext St LED.  Action: " + highStr);
-    Serial.println("Output: ATX Trigger. Action: " + highStr + "\n");
+    if (state == PMUStateClass::RESETING) {
+        digitalWrite(RST_RELAY, LOW);
+        digitalWrite(LED, HIGH);
+        digitalWrite(EXT_LED, HIGH);
+        state = PMUStateClass::ON;
+        resumeTask(shutdownDetection);
+
+#if defined(DEBUG)
+        String stateStr = getStateString(state);
+        Serial.println("Input: Reset Button. Event: Released. Action: " + stateStr);
+        Serial.println("Output: Reset Relay. Action: " + lowStr);
+        Serial.println("Output: Status LED.  Action: " + highStr);
+        Serial.println("Output: Ext St LED.  Action: " + highStr);
+        Serial.println("Output: ATX Trigger. Action: " + highStr + "\n");
 #endif // DEBUG
   }
 }
@@ -299,6 +306,8 @@ void onRstDouble(ButtonInformation* sender) {
  * NOT change!! Peripheral reset does not occur.
  */
 void softReset() {
+    RaspiHostComm.end();
+    delay(10);
     asm volatile ("  jmp 0");
 }
 
@@ -316,7 +325,14 @@ void onCmdAcknowledged(PMUCommandInfo* sender) {
  */
 void onCmdReceived(PMUCommandInfo* sender) {
     ButtonInformation* bi;
+    bi = new ButtonInformation();
     bi->analogValue = HIGH;
+
+    String stateStr = "";
+    String ledStateStr = "";
+    String relayStateStr = "";
+    String trigStateStr = "";
+
     switch (sender->commandType) {
         case PMUCommand_FORCE_PSU_OFF:
             RaspiHostComm.println("WARNING: Forcing power off...");
@@ -335,37 +351,40 @@ void onCmdReceived(PMUCommandInfo* sender) {
             softReset();
             break;
         case PMUCommand_GETSTATUS:
-            String stateStr = getStateString(state);
-            RaspiHostComm.println("PSU State: " + stateStr);
+            stateStr = getStateString(state);
+            RaspiHostComm.print("PSU State: ");
+            RaspiHostComm.println(stateStr);
 
-            String ledStateStr = "";
-            String relayStateStr = "";
-            String trigStateStr = "";
-            switch  (state) {
-                case PMUStateClass::OFF:
-                    ledStateStr = getStateString(int(LOW));
-                    relayStateStr = ledStateStr;
-                    trigStateStr = ledStateStr;
-                    break;
-                case PMUStateClass::ON:
-                    ledStateStr = getStateString(int(HIGH));
-                    relayStateStr = ledStateStr;
-                    trigStateStr = ledStateStr;
-                    break;
-                case PMUStateClass::RESETING:
-                    ledStateStr = getStateString(int(LOW));
-                    relayStateStr = getStateString(int(HIGH));
-                    trigStateStr = relayStateStr;
-                    break;
+            if (state == PMUStateClass::OFF) {
+                ledStateStr = getStateString(int(LOW));
+                relayStateStr = ledStateStr;
+                trigStateStr = ledStateStr;
+            }
+            else if (state == PMUStateClass::ON) {
+                ledStateStr = getStateString(int(HIGH));
+                relayStateStr = ledStateStr;
+                trigStateStr = ledStateStr;
+            }
+            else if (state == PMUStateClass::RESETING) {
+                ledStateStr = getStateString(int(LOW));
+                relayStateStr = getStateString(int(HIGH));
+                trigStateStr = relayStateStr;
             }
 
             RaspiHostComm.println("");
             RaspiHostComm.println("************ ATX PSU Status ************");
-            RaspiHostComm.println("Output: Power Relay (12V). Action: " + relayStateStr);
-            RaspiHostComm.println("Output: Power Relay (5V). Action: " + relayStateStr);
-            RaspiHostComm.println("Output: Status LED.  Action: " + ledStateStr);
-            RaspiHostComm.println("Output: Ext St LED.  Action: " + ledStateStr);
-            RaspiHostComm.println("Output: ATX Trigger. Action: " + trigStateStr);
+            RaspiHostComm.print("Output: Power Relay (12V). Action: ");
+            RaspiHostComm.println(relayStateStr);
+            RaspiHostComm.print("Output: Power Relay (5V). Action: ");
+            RaspiHostComm.println(relayStateStr);
+            RaspiHostComm.print("Output: Status LED.  Action: ");
+            RaspiHostComm.println(ledStateStr);
+            RaspiHostComm.print("Output: Ext St LED.  Action: ");
+            RaspiHostComm.println(ledStateStr);
+            RaspiHostComm.print("Output: ATX Trigger. Action: ");
+            RaspiHostComm.println(trigStateStr);
+            break;
+        case PMUCommand_ACK:
             break;
     }
 }
