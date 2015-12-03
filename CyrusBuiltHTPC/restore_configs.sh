@@ -23,11 +23,11 @@
 #
 
 # Checks to see if the user wants to remove the backup once its been restored.
-function check_remove_backup() {
+check_remove_backup() {
 	echo
 	local canremove
 	while true; do
-		read -p "Do you wish to remove the backup? (Y/n)?" $canremove
+		read -p "Do you wish to remove the backup? (Y/n)?" canremove
 		case $canremove in
 			[Yy]* ) return 0;;
 			[Nn]* ) return 1;;

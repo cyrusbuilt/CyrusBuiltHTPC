@@ -28,7 +28,7 @@ username=''
 default_username='pi'
 
 # Get the IP address of the Pi.
-function get_raspi_ip() {
+get_raspi_ip() {
 	read -p "Enter the hostname/IP Address of the Raspberry Pi (SSH must be running): " raspi_ip
 	if [ -z "$raspi_ip" ]; then
 		return 1
@@ -38,7 +38,7 @@ function get_raspi_ip() {
 }
 
 # Get the username to authenticate with.
-function get_username() {
+get_username() {
 	read -p "Enter the username to authenticate with the Raspberry Pi (or blank for default [pi]): " username
 	if [ -z "$username" ]; then
 		username=$default_username

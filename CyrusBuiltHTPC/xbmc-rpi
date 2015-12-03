@@ -31,8 +31,10 @@ mode=`fbset|grep "mode "|sed -e "s/.*\"\(.*\)\"/\1/"`
 ps=$PS1
 export PS1=''
 setterm -cursor off
+echo
+echo "Starting XBMC...."
 clear
-xbmc_bin='/usr/lib/xbmc/xbmc.bin'
+xbmc_bin='/usr/bin/kodi-standalone'
 if [ ! -f $xbmc_bin ]; then
 	echo
 	echo "FATAL ERROR: XBMC not installed!! Cannot continue."
@@ -50,4 +52,7 @@ sudo chvt 2
 sudo chvt 1
 
 clear
+echo
+echo "XBMC stopped."
+echo
 exit 0

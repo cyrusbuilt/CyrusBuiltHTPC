@@ -1,11 +1,11 @@
 /*
   Raspi_ATX_PMU
-  v1.7b
-  
+  v2.0
+
   Author:
        Chris Brunner <cyrusbuilt at gmail dot com>
 
-  Copyright (c) 2013 CyrusBuilt
+  Copyright (c) 2015 CyrusBuilt
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,15 +22,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-
-This project was created using VisualMicro for Microsoft Visual Studio 2010 (http://www.visualmicro.com).
-
-** HOWEVER **
-The Raspi_ATX_PMU.ino file is still a normal sketch, so it can be opened in the standard Arduino IDE or other alternative IDEs/code editors.
-
 Dependencies:
-PMUState - Simple device state library for Raspi_ATX_PMU, by CyrusBuilt.
 ButtonEvent - Part of ebl-arduino, and Event-based library for Arduino by
 Renato Ferreira (https://code.google.com/p/ebl-arduino/wiki/ButtonEvent)
 
-Both libs need to be copied to the "libraries" folder in your Aduion installation.
+Both libs need to be copied to the "libraries" folder in your Arduino installation.

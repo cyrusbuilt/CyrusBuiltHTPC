@@ -1,8 +1,0 @@
-./
-./lib/ButtonEvent
-./lib/PMUState
-./lib/RaspiHostComm
-/Applications/Arduino.app/Contents/Resources/Java/libraries/SoftwareSerial
-/Applications/Arduino.app/Contents/Resources/Java/hardware/arduino/variants/standard
-/Applications/Arduino.app/Contents/Resources/Java/hardware/arduino/cores/arduino.DuinOS
-

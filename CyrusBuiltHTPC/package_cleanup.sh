@@ -1,9 +1,9 @@
 #!/bin/sh
 
-#  get_xbmc.sh
-#  
+#  package_cleanup.sh
 #
-#  Created by Cyrus on 2/24/13.
+#
+#  Created by Cyrus on 12/7/15.
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,33 +19,14 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-#  SYNOPSIS: Downloads XBMC using git.
+#  SYNOPSIS: Cleanup the apt package database.
 #
 
-# Blow away the local source from git, if it exists.
-LOCAL_GIT_SRC="/home/pi/CyrusBuiltHTPC/xbmc_install/xbmc-rbp"
-if [ -d $LOCAL_GIT_SRC ]; then
-    echo "Removing $LOCAL_GIT_SRC ..."
-    rm -rf $LOCAL_GIT_SRC
-fi
-
-# Get XBMC.
 echo
-echo "Retrieving latest stable XBMC release..."
-mkdir $LOCAL_GIT_SRC
-cd $LOCAL_GIT_SRC
-wget http://mirrors.xbmc.org/releases/source/xbmc-12.1.tar.gz
-if [ $? -ne 0 ]; then
-    exit 1
-else
-	tar xvfz xbmc-12.1.tar.gz
-	if [ $? -ne 0 ]; then
-		echo
-		echo "ERROR: Failed to decompress XBMC source."
-		exit 1
-	fi
-fi
-cd ..
+echo "Cleaning up package database..."
+echo
+sudo apt-get install -f
+sudo dpkg --configure -a
+sudo apt-get clean
+sudo apt-get update
 exit 0
-
-

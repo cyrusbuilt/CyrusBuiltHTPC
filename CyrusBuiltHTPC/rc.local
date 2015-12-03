@@ -1,5 +1,5 @@
 #!/bin/sh -e
-#
+
 # rc.local
 #
 # This script is executed at the end of each multiuser runlevel.
@@ -18,13 +18,16 @@ if [ "$_IP" ]; then
 fi
 
 # Init RTC (ds1307) if module present.
-modules='/etc/modules'
-if grep -q "rtc-ds1307" $modules; then
+if grep -q "rtc-ds1307" '/etc/modules'; then
 	echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device
 fi
 
-# Auto-start XBMC if present.
-if [ -f /usr/bin/xbmc-rpi ]; then
-	./usr/bin/xbmc-rpi
+# Auto-start Kodi if present.
+#if [ -f /usr/bin/xbmc-rpi ]; then
+#	./usr/bin/xbmc-rpi
+#fi
+
+if [ -f /usr/local/bin/startkodi ]; then
+	startkodi
 fi
 exit 0

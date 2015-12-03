@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #  install_sys_tools.sh
-#  
+#
 #
 #  Created by Cyrus on 2/25/13.
 #
@@ -27,16 +27,17 @@ echo "Installing CyrusBuilt HTPC system tools..."
 sudo cp systemreboot /usr/bin/
 sudo cp systemshutdown /usr/bin/
 sudo cp systemupdate /usr/bin/
-cp backup_configs.sh ~/
-cp restore_configs.sh ~/
+cp backup_configs.sh /home/pi
+cp restore_configs.sh /home/pi
 sudo chmod +rx /usr/bin/systemreboot
 sudo chmod +rx /usr/bin/systemshutdown
 sudo chmod +rx /usr/bin/systemupdate
-chmod +rx ~/backup_configs.sh
-chmod +rx ~/restore_configs.sh
-cd ~/CyrusBuiltHTPC/xbmc_install
+chmod +rx /home/pi/backup_configs.sh
+chmod +rx /home/pi/restore_configs.sh
+cd /home/pi/CyrusBuiltHTPC/xbmc_install
 chmod +rx *.sh
 
 cd ~/
+echo
 echo "Installation successful!"
 exit 0

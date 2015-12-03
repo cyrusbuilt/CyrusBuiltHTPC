@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #  systemupdate.sh
-#  
+#
 #
 #  Created by Cyrus on 2/24/13.
 #
@@ -23,6 +23,16 @@
 #  This script simply updates the system.
 #
 
-sudo apt-get update
-sudo apt-get upgrade
+echo
+echo "Beginning system update..."
+echo
+sudo apt-get update -y
+sudo apt-get dist-upgrade -y
+sudo rpi-update
+echo
+echo
+echo "Cleaning up..."
+echo
+sudo apt-get autoremove
+./package_cleanup.sh
 exit $?

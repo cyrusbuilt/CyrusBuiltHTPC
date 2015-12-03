@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #  backup_configs.sh
-#  
+#
 #
 #  Created by Cyrus on 2/27/13.
 #
@@ -41,14 +41,20 @@ else
 fi
 
 BACKUP_DIR=$BACKUP_DIR/
-sudo cp /usr/bin/xbmc-rpi $BACKUP_DIR
+if [ -f '/usr/bin/xbmc-rpi' ]; then
+	sudo cp /usr/bin/xbmc-rpi $BACKUP_DIR
+fi
 sudo cp /boot/config.txt $BACKUP_DIR
 sudo cp /etc/sudoers $BACKUP_DIR
 sudo cp /etc/rc.local $BACKUP_DIR
 sudo cp /etc/modules $BACKUP_DIR
 sudo cp /etc/fstab $BACKUP_DIR
-sudo cp /var/lib/polkit-1/localauthority/50-local.d/20-xbmclive.pkla $BACKUP_DIR
+
+if [ -f '/var/lib/polkit-1/localauthority/50-local.d/20-xbmclive.pkla' ]; then
+	sudo cp /var/lib/polkit-1/localauthority/50-local.d/20-xbmclive.pkla $BACKUP_DIR
+fi
 echo "Done!"
 echo
 echo "A backup copy of the configs are in $BACKUP_DIR"
+echo
 exit 0

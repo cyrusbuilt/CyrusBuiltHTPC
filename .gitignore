@@ -1,5 +1,8 @@
 # MacOS specific stuff
 .DS_Store
 
-#QtCreator user settings
+# QtCreator user settings
 *.creator.user
+
+# Build output
+build

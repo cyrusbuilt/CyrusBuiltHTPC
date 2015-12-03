@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #  get_and_install_xbmc.sh
-#  
+#
 #
 #  Created by Cyrus on 2/24/13.
 #
@@ -26,7 +26,7 @@
 #
 
 # Check to see if we can configure the HTPC platform.
-function check_can_configure() {
+check_can_configure() {
 	local canconfigure=''
 	while true; do
 		read -p "Configure platform now (Y/n)?: " canconfigure
@@ -39,67 +39,153 @@ function check_can_configure() {
 }
 
 # Do post-install configuration.
-function configure_xbmc() {
+configure_xbmc() {
 	echo
 	echo "Configuring XMBC ..."
-	local PI_USERDATA='~/.xbmc/userdata'
-	local ROOT_USERDATA='~/root/.xbmc/userdata'
+	# The user that will be running XBMC needs to be a member of the 
+	# following groups
+	sudo addgroup --system input
+	groups="audio video input dialout plugdev tty"
+	for i in $groups; do
+		sudo usermod -a -G $i pi
+	done
+
+	local PI_USERDATA='/home/pi/.xbmc/userdata'
+	local ROOT_USERDATA='/home/root/.xbmc/userdata'
 	if [ -d $PI_USERDATA ]; then
 		rm -rf $PI_USERDATA
 	fi
-	
+
 	if [ -d $ROOT_USERDATA ]; then
 		sudo rm -rf $ROOT_USERDATA
 	fi
-	
+
 	if [ ! -d $PI_USERDATA ]; then
+		if [ ! -d '/home/pi/.xbmc' ]; then
+			mkdir '/home/pi/.xbmc'
+		fi
 		mkdir $PI_USERDATA
 	fi
-	
-	if [ ! -d $ROOT_USERDATA ]; then
-		sudo mkdir $ROOT_USERDATA
+
+	if [ -d '/home/root' ]; then
+		if [ ! -d $ROOT_USERDATA ]; then
+			if [ ! -d '/home/root/.xbmc' ]; then
+				sudo mkdir '/home/root/.xbmc'
+			fi
+			sudo mkdir $ROOT_USERDATA
+		fi
 	fi
-	
+
+	# Configure Kodi to auto-start on boot.
+	if [ -f '/etc/default/kodi' ]; then
+		sed -i 's/ENABLED=0/ENABLED=1/' '/etc/default/kodi'
+	fi
+
+	# Substitute our settings (reduces CPU usage).
 	cp -f advancedsettings.xml $PI_USERDATA
-	chown pi:pi '$PI_USERDATA/advancedsettins.xml'
-	sudo cp -f advancedsettings.xml $ROOT_USERDATA
-	sudo chown root:root '$ROOT_USERDATA/advancedsettings.xml'
+	chown pi:pi $PI_USERDATA/advancedsettings.xml
+	if [ -d '/home/root' ]; then
+		sudo cp -f advancedsettings.xml $ROOT_USERDATA
+		sudo chown root:root $ROOT_USERDATA/advancedsettings.xml
+	fi
 }
 
-# And XBMC source repo.
-echo "Configuring XBMC source repo ..."
-TARGET='/etc/apt/sources.list.d'
-FILE='mene.list'
-if [ ! -f  '$TARGET/$FILE']; then
-	sudo cp -f $FILE $TARGET
-	sudo chown root:root '$TARGET/$FILE'
-fi
+# Check to see if a previous version of Kodi is installed.
+is_package_installed() {
+	PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $1|grep "install ok installed")
+	echo "Checking for $1: $PKG_OK"
+	if [ "$PKG_OK" == "" ]; then
+  		return 1
+  	else
+  		return 0
+	fi
+}
 
-# Get and install XBMC. Add auth key if needed.
-echo "Installing XBMC ..."
+# Check for and remove any previous installation.
 echo
-sudo addgroup --system input
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 5243CDED
+echo "Checking if a previous version of Kodi is installed..."
+echo
+UNINST_PKGS="libplatform1 libcec3 kodi"
+for j in $UNINST_PKGS; do
+	if is_package_installed $j; then
+		echo "Uninstalling package: $j"
+		sudo dpkg -r $j -y
+	fi
+done
+
+# Setup UDEV rules to grant Kodi ownership of input devices.
+TARGET='/etc/udev/rules.d'
+FILES='99-input.rules 10-permissions.rules'
+for f in $FILES; do
+	if [ -f $f ]; then
+		sudo cp -f $f $TARGET
+		sudo chown root:root $TARGET/$f
+	fi
+done
+
+# NOTE The following repo from Michael Gorven is now deprecated.
+# It has not been updated since 2013 and is not compatible with
+# Raspbian "Jessie". Even if you are currently running "Wheezy",
+# it should be upgraded to "Jessie" when the systemupdate script
+# is called during setup.
+
+# Add XBMC source repo.
+#echo
+#echo "Configuring XBMC source repo ..."
+#TARGET='/etc/apt/sources.list.d'
+#FILE='mene.list'
+#if [ -f $FILE ]; then
+#	sudo cp -f $FILE $TARGET
+#	sudo chown root:root $TARGET/$FILE
+#fi
+
+# Get and install Kodi. Add auth key if needed.
+echo
+echo "Installing QT3 bindings for Python ..."
+echo
+#sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 5243CDED
+#echo
 sudo apt-get update
-sudo apt-get install xbmc
+sudo apt-get install python-qt3 -y
+#sudo apt-get install kodi -y
 ERR=$?
 if [ $ERR -ne 0 ]; then
 	echo
 	echo "ERROR: XBMC installation failed. Error code: $ERR"
-	exit $ERR 
+	exit $ERR
 fi
 
-# Configure XBMC and then offer to configure the host platform for the user.
+# Downloaded and extract the Kodi package for "Jessie" from gkreidl's repo.
+wget http://steinerdatenbank.de/software/kodi-15-jessie.tar.gz
+tar -xzf kodi-15-jessie.tar.gz
+cd kodi-15-jessie
+
+# Now install Kodi.
+echo
+echo "Installing Kodi ..."
+echo
+sudo ./install
+ERR=$?
+if [ $ERR -ne 0 ]; then
+	echo
+	echo "ERROR: XBMC installation failed. Error code: $ERR"
+	exit $ERR
+else
+	# Install HDMI CEC support.
+	sudo apt-get install libcec3 -y
+fi
+
+# Configure Kodi and then offer to configure the host platform for the user.
 configure_xbmc
 echo
 echo
-echo "XBMC installation complete. It is necessary to configure the platform"
-echo "to enable the RTC, relocate rootfs, enable XBMC auto-start on boot, etc."
+echo "Kodi installation complete. It is necessary to configure the platform"
+echo "to enable the RTC, relocate rootfs, enable Kodi auto-start on boot, etc."
 echo "Would you like to configure the HTPC platform now? If so, you will be"
 echo "required to reboot when finished in order for the changes to take effect."
 echo
 if check_can_configure; then
-	sh ~/CyrusBuiltHTPC/configure_htpc_platform.sh
+	sh /home/pi/CyrusBuiltHTPC/configure_htpc_platform.sh
 else
 	cd ~/
 fi
