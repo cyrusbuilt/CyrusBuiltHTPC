@@ -42,7 +42,7 @@ check_can_configure() {
 configure_xbmc() {
 	echo
 	echo "Configuring XMBC ..."
-	# The user that will be running XBMC needs to be a member of the 
+	# The user that will be running XBMC needs to be a member of the
 	# following groups
 	sudo addgroup --system input
 	groups="audio video input dialout plugdev tty"
@@ -172,6 +172,7 @@ if [ $ERR -ne 0 ]; then
 	exit $ERR
 else
 	# Install HDMI CEC support.
+	cd ..
 	sudo apt-get install libcec3 -y
 fi
 
